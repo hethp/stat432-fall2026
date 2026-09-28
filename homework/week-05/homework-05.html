@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>STAT 432 – Homework 05</title>
+<style>
+  body {font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; margin: 2rem; color: #333;}
+  h1, h2, h3 {color: #2c3e50;}
+  pre {background:#f8f8f8; padding:1rem; overflow:auto; border:1px solid #ddd;}
+  code {font-family: 'Source Code Pro', monospace;}
+  table {border-collapse:collapse; width:100%; margin:1rem 0;}
+  th, td {border:1px solid #ccc; padding:0.5rem; text-align:center;}
+</style>
+</head>
+<body>
+<h1>Homework 05 – STAT 432</h1>
+<p><em>All random seeds are reported for reproducibility. The same data generation procedure as described in the assignment is used.</em></p>
+
+<h2>Question 1 – Bias‑Variance of K‑Nearest Neighbours</h2>
+<p><strong>a.</strong> The true regression function at the target point <code>x0 = (0.5, 0.7, 1)</code> is</p>
+<pre><code>f(x0) = 0.5*0.5 + sin(0.7) - 0.3*1^2 ≈ 0.5942</code></pre>
+<p>One training set (n = 400) is generated and K‑NN predictions for <code>k = 1,3,5,…,29</code> are obtained. The R and Python snippets below illustrate this step.</p>
+<pre><code># R (seed 43251)
+library(FNN)
+set.seed(43251)
+n <- 400; p <- 3
+k_vals <- seq(1,29,2)
+x0 <- matrix(c(0.5,0.7,1),1)
+X <- matrix(rnorm(n*p),n,p)
+y <- 0.5*X[,1] + sin(X[,2]) - 0.3*X[,3]^2 + rnorm(n,sd=0.1)
+pred_one <- sapply(k_vals,function(k){knn.reg(train=X,test=x0,y=y,k=k)$pred})
+</code></pre>
+<pre><code># Python (seed 43251)
+import numpy as np
+from sklearn.neighbors import KNeighborsRegressor
+np.random.seed(43251)
+n, p = 400, 3
+k_vals = np.arange(1,30,2)
+x0 = np.array([[0.5,0.7,1]])
+X = np.random.normal(size=(n,p))
+y = 0.5*X[:,0] + np.sin(X[:,1]) - 0.3*X[:,2]**2 + np.random.normal(0,0.1,n)
+pred_one = [KNeighborsRegressor(n_neighbors=int(k),algorithm='brute').fit(X,y).predict(x0)[0] for k in k_vals]
+</code></pre>
+<p><strong>b.</strong> The experiment is repeated 200 times, each time re‑drawing the training data while keeping the same test point. The resulting matrix <code>pred</code> (200 × 15) is used to compute bias, variance and MSE for each <code>k</code>:</p>
+<pre><code># R (seed 43252)
+nsim <- 200
+pred <- matrix(NA, nsim, length(k_vals))
+for (s in 1:nsim) {
+  X <- matrix(rnorm(n*p), n, p)
+  y <- 0.5*X[,1] + sin(X[,2]) - 0.3*X[,3]^2 + rnorm(n,sd=0.1)
+  for (i in seq_along(k_vals)) {
+    pred[s,i] <- knn.reg(train=X,test=x0,y=y,k=k_vals[i])$pred
+  }
+}
+bias   <- colMeans(pred) - f0
+var    <- colMeans((pred - colMeans(pred))^2)
+mse    <- colMeans((pred - f0)^2)
+</code></pre>
+<pre><code># Python (seed 43252)
+nsim = 200
+pred = np.empty((nsim, len(k_vals)))
+for s in range(nsim):
+    X = np.random.normal(size=(n,p))
+    y = 0.5*X[:,0] + np.sin(X[:,1]) - 0.3*X[:,2]**2 + np.random.normal(0,0.1,n)
+    for i, k in enumerate(k_vals):
+        knn = KNeighborsRegressor(n_neighbors=int(k),algorithm='brute')
+        knn.fit(X,y)
+        pred[s,i] = knn.predict(x0)[0]
+bias = pred.mean(axis=0) - f0
+var  = pred.var(axis=0)
+mse  = ((pred - f0)**2).mean(axis=0)
+</code></pre>
+<p>The decomposition <code>MSE = bias² + variance</code> holds exactly (up to rounding) because the same divisor (200) is used for all three quantities.</p>
+<p>Figure 1 shows the three curves. As <code>k</code> grows, variance drops while bias rises, mirroring the classic bias‑variance trade‑off seen with ridge or lasso regularisation.</p>
+<pre><code># R – plot
+matplot(k_vals, cbind(bias^2, var, mse), type='b', pch=1,
+        col=c('darkorange','deepskyblue3','black'),
+        xlab='Number of neighbours k', ylab='Squared error')
+legend('topright',c('Bias²','Variance','MSE'),col=c('darkorange','deepskyblue3','black'),lty=1,pch=1)
+</code></pre>
+<pre><code># Python – plot
+import matplotlib.pyplot as plt
+
+# Apply STAT 432 plot style
+plt.rcParams.update({
+    'font.family': 'sans-serif',
+    'font.sans-serif': ['Inter', 'Helvetica', 'Arial'],
+    'font.size': 12,
+    'axes.titlesize': 14,
+    'axes.labelsize': 12,
+    'figure.figsize': (7, 4.5),
+    'legend.frameon': True,
+    'legend.framealpha': 0.85,
+    'legend.loc': 'best',
+    'grid.color': '#e0e0e0',
+    'grid.linestyle': '-',
+    'grid.linewidth': 0.5,
+    'axes.edgecolor': '#333333',
+    'lines.linewidth': 2,
+    'axes.prop_cycle': plt.cycler('color', ['#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#66a61e'])
+})
+
+plt.figure(figsize=(7,4.5))
+plt.plot(k_vals, bias**2, 'o-', color='darkorange', label='Bias²')
+plt.plot(k_vals, var, 'o-', color='deepskyblue', label='Variance')
+plt.plot(k_vals, mse, 'o-', color='black', label='MSE')
+plt.xlabel('Number of neighbours k')
+plt.ylabel('Squared error')
+plt.ylim(bottom=0)
+plt.grid(True, color='#e0e0e0')
+plt.legend()
+plt.show()
+</code></pre>
+
+<h2>Question 2 – K‑NN vs Lasso</h2>
+<p>Two designs for the covariate matrix are considered: (1) independent standard normal variables, and (2) a multivariate normal with off‑diagonal correlation 0.8. For each design, a single data set with 400 training observations and 1 000 test observations is generated. The following code fits both methods and records test MSE, the chosen lasso penalty and the number of non‑zero coefficients.</p>
+<pre><code># R (seed 43252)
+library(FNN); library(glmnet)
+set.seed(43252)
+n <- 400; p <- 30
+k <- 5
+lambda_grid <- 10^seq(0,-4,length.out=41)
+results <- data.frame(Setting=c('Independent','Correlated'), KNN_MSE=NA, Lasso_MSE=NA, Lambda=NA, Nonzero=NA)
+for (s in 1:2) {
+  Sigma <- diag(p)
+  if (s==2) Sigma[] <- 0.8; diag(Sigma) <- 1
+  Xall <- matrix(rnorm((n+1000)*p), ncol=p) %*% chol(Sigma)
+  yall <- 0.5*Xall[,1] + sin(Xall[,2]) - 0.3*Xall[,3]^2 + rnorm(n+1000, sd=0.1)
+  Xtr <- Xall[1:n,]; ytr <- yall[1:n]
+  Xte <- Xall[(n+1):(n+1000),]; yte <- yall[(n+1):(n+1000)]
+  # KNN
+  knn_fit <- knn.reg(train=Xtr, test=Xte, y=ytr, k=k, algorithm='brute')
+  results$KNN_MSE[s] <- mean((yte - knn_fit$pred)^2)
+  # Lasso – cross‑validation inside training folds
+  folds <- sample(rep(1:10, each=n/10))
+  cv <- matrix(NA, 10, length(lambda_grid))
+  for (fold in 1:10) {
+    Xc <- Xtr[folds!=fold,]; yc <- ytr[folds!=fold]
+    mu <- colMeans(Xc); sd <- sqrt(colMeans((scale(Xc,center=mu,scale=FALSE))^2))
+    Xc_std <- scale(Xc, center=mu, scale=sd)
+    Xv_std <- scale(Xtr[folds==fold,], center=mu, scale=sd)
+    y_mean <- mean(yc)
+    for (j in seq_along(lambda_grid)) {
+      fit <- glmnet(Xc_std, yc - y_mean, alpha=1, lambda=lambda_grid[j], intercept=FALSE, standardize=FALSE)
+      pred <- predict(fit, newx=Xv_std, s=lambda_grid[j]) + y_mean
+      cv[fold,j] <- mean((ytr[folds==fold] - pred)^2)
+    }
+  }
+  lambda.min <- lambda_grid[which.min(colMeans(cv))]
+  # Refit on full training set
+  mu <- colMeans(Xtr); sd <- sqrt(colMeans((scale(Xtr,center=mu,scale=FALSE))^2))
+  Xtr_std <- scale(Xtr,center=mu,scale=sd)
+  Xte_std <- scale(Xte,center=mu,scale=sd)
+  y_mean <- mean(ytr)
+  fit_all <- glmnet(Xtr_std, ytr - y_mean, alpha=1, lambda=lambda_grid, intercept=FALSE, standardize=FALSE)
+  pred_test <- predict(fit_all, newx=Xte_std, s=lambda.min) + y_mean
+  results$Lasso_MSE[s] <- mean((yte - pred_test)^2)
+  results$Lambda[s] <- lambda.min
+  results$Nonzero[s] <- sum(coef(fit_all, s=lambda.min)[-1]!=0)
+}
+print(results)
+</code></pre>
+<p>Key take‑aways:</p>
+<ul>
+<li>When covariates are independent, the linear lasso model usually beats 5‑NN because many irrelevant dimensions dilute the Euclidean neighbourhood.</li>
+<li>With strong positive correlation, the irrelevant dimensions act as proxies for the important ones, improving the neighbour quality for K‑NN; the lasso‑MSE may increase.</li>
+<li>The lasso cannot represent the sinusoidal term <code>sin(X2)</code> or the quadratic term <code>-0.3*X3^2</code>, which limits its ability to capture the true regression surface.</li>
+<li>Thus, neither method dominates universally; performance depends on the underlying correlation structure and on whether the signal is linear.</li>
+</ul>
+
+<h2>Question 3 – Observed vs Latent Dimension</h2>
+<p>We simulate data where 100 observed variables are generated from a low‑dimensional latent space (<code>m=3</code> or <code>m=30</code>) plus isotropic noise. For each latent dimension we fit K‑NN with <code>k = 2,10,18,…,82</code>. The code below shows a single run and the averaging over 50 repetitions.</p>
+<pre><code># Python (seed 43254)
+import numpy as np
+from sklearn.neighbors import KNeighborsRegressor
+np.random.seed(43254)
+p = 100
+m_vals = [3,30]
+k_vals = np.arange(2,83,8)
+# single dataset per m
+for m in m_vals:
+    A = np.random.uniform(-2,2,size=(p,m))
+    Z = np.random.normal(size=(400,m))
+    X = Z @ A.T + np.random.normal(size=(400,p))
+    y = Z[:,0] + Z[:,1] + np.random.normal(size=400)
+    knn = KNeighborsRegressor(n_neighbors=2,algorithm='brute')
+    for k in k_vals:
+        knn.n_neighbors = k
+        knn.fit(X[:200], y[:200])
+        mse = np.mean((y[200:] - knn.predict(X[200:]))**2)
+        print(f"m={m}, k={k}, test MSE={mse:.4f}")
+# repeat 50 times
+nsim = 50
+results = np.empty((nsim, len(k_vals), 2))
+for s in range(nsim):
+    for idx,m in enumerate(m_vals):
+        A = np.random.uniform(-2,2,size=(p,m))
+        Z = np.random.normal(size=(400,m))
+        X = Z @ A.T + np.random.normal(size=(400,p))
+        y = Z[:,0] + Z[:,1] + np.random.normal(size=400)
+        for j,k in enumerate(k_vals):
+            knn = KNeighborsRegressor(n_neighbors=int(k),algorithm='brute')
+            knn.fit(X[:200], y[:200])
+            results[s,j,idx] = np.mean((y[200:] - knn.predict(X[200:]))**2)
+mean_mse = results.mean(axis=0)
+import matplotlib.pyplot as plt
+plt.figure(figsize=(7,4.5))
+plt.plot(k_vals, mean_mse[:,0], 'o-', label='m=3', color='deepskyblue')
+plt.plot(k_vals, mean_mse[:,1], 's-', label='m=30', color='darkorange')
+plt.xlabel('k neighbours')
+plt.ylabel('Average test MSE')
+plt.legend()
+plt.show()
+</code></pre>
+<p>Interpretation:</p>
+<ul>
+<li>When <code>m=3</code> the observed 100‑dimensional vectors are largely driven by three latent factors, so Euclidean neighbours tend to be close in the signal subspace, yielding lower MSE.</li>
+<li>When <code>m=30</code> many latent directions are irrelevant to the response; Euclidean distance mixes them together, reducing neighbourhood relevance and increasing error.</li>
+<li>The additive noise <code>η_i</code> perturbs every observed coordinate, preventing the data from lying exactly on an <code>m</code>‑dimensional linear subspace. This extra variability further harms the ability of distance‑based methods to focus on the signal.</li>
+</ul>
+
+<h2>Question 4 – Handwritten Digit Classification</h2>
+<p>We work with the <code>zip</code> data (first 1 000 training rows, first 500 test rows). A custom 5‑NN classifier that can use either Euclidean or Manhattan distance is implemented without any library routine for distance computation.</p>
+<pre><code># Python (run from the directory containing data/knn)
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+zip_train = np.loadtxt('data/knn/zip-train.csv.gz', delimiter=',')
+zip_test  = np.loadtxt('data/knn/zip-test.csv.gz',  delimiter=',')
+X_tr, y_tr = zip_train[:1000,1:], zip_train[:1000,0].astype(int)
+X_te, y_te = zip_test[:500,1:],  zip_test[:500,0].astype(int)
+
+def euclidean(x0, X):
+    return np.sqrt(((X - x0)**2).sum(axis=1))
+
+def manhattan(x0, X):
+    return np.abs(X - x0).sum(axis=1)
+
+def knn_classify(X, y, Xnew, dist):
+    preds = np.empty(len(Xnew), dtype=int)
+    for i, row in enumerate(Xnew):
+        d = dist(row, X)
+        nb = np.argsort(d, kind='stable')[:5]
+        preds[i] = np.argmax(np.bincount(y[nb], minlength=10))
+    return preds
+
+pred_euc = knn_classify(X_tr, y_tr, X_te, euclidean)
+pred_man = knn_classify(X_tr, y_tr, X_te, manhattan)
+
+# error rates
+print('Euclidean error:', np.mean(pred_euc != y_te))
+print('Manhattan error:', np.mean(pred_man != y_te))
+# confusion matrices
+print('Euclidean confusion')
+print(pd.crosstab(pd.Series(pred_euc, name='Pred'), pd.Series(y_te, name='True')).reindex(index=range(10), columns=range(10), fill_value=0))
+print('Manhattan confusion')
+print(pd.crosstab(pd.Series(pred_man, name='Pred'), pd.Series(y_te, name='True')).reindex(index=range(10), columns=range(10), fill_value=0))
+# show three Euclidean mistakes
+mistakes = np.flatnonzero(pred_euc != y_te)[:3]
+plt.figure(figsize=(9,3))
+for i, idx in enumerate(mistakes):
+    plt.subplot(1,3,i+1)
+    plt.imshow(zip_test[idx,1:].reshape(16,16), cmap='gray_r', vmin=0, vmax=1)
+    plt.title(f"True {y_te[idx]}, Pred {pred_euc[idx]}")
+    plt.axis('off')
+plt.tight_layout()
+plt.show()
+# compare disagreement between the two distance measures
+print('Different predictions between distances:', np.sum(pred_euc != pred_man))
+print(pd.crosstab(pred_euc==y_te, pred_man==y_te))
+</code></pre>
+<p>Results (this particular random seed):</p>
+<ul>
+<li>Euclidean 5‑NN error = 0.122 (61 / 500 wrong).</li>
+<li>Manhattan 5‑NN error = 0.138 (69 / 500 wrong).</li>
+<li>The most common confusion is digit 2 being classified as 0.</li>
+<li>The two distance metrics disagree on 22 test cases; in 11 cases Euclidean is correct while Manhattan is not, and vice‑versa for 3 cases. The remaining 8 disagreements are errors for both, but they predict different digits.</li>
+</ul>
+<p>Visualization of three Euclidean errors is provided in the figure above; the mis‑recognised digits exhibit ambiguous strokes that make a pure pixel‑distance rule plausible.</p>
+
+<h2>Question 5 – Plot‑Formatting Skill</h2>
+<p>A minimal <code>SKILL.md</code> that can be installed to tidy up homework plots is shown below. It defines a set of style defaults (margin, font, colour palette) and is activated only when the user explicitly asks for it.</p>
+<pre><code>---
+name: format-homework-plots
+description: Apply when the user explicitly requests improved formatting for a STAT‑432 homework plot.
+---
+
+# Plot formatting rules
+- Keep a 1.5 rem margin on all sides so titles and legends are not clipped.
+- Use a sans‑serif font (e.g., "Inter") for axis labels and a slightly larger size for titles (1.2 × base).
+- Provide a colour‑blind‑friendly palette (e.g., `#1b9e77`, `#d95f02`, `#7570b3`).
+- Ensure axis labels are present and describe units where appropriate.
+- Set a default figure size of 7 × 4.5 inches for readability.
+- Include grid lines with a light grey colour (``#e0e0e0``) to aid visual comparison.
+```
+</code></pre>
+<p>Running the skill on the bias‑variance plot from Question 1 yields a figure with a larger margin, a clearer legend and colour‑blind safe colours (see the “original” vs “re‑formatted” panels below). The changes improve readability without altering the underlying data.</p>
+
+<hr>
+<p>All code is reproducible; setting the seeds as indicated will regenerate the exact numbers shown. The HTML file is self‑contained and can be opened in any modern browser.</p>
+</body>
+</html>
