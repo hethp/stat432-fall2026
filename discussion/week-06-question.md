@@ -1,0 +1,7 @@
+---
+id: w06-heta2-cutoff-sensitivity-decisions
+title: "Identical probabilities, opposite decisions"
+author: "Heta Patel (heta2)"
+---
+
+Two classifiers trained on the same binary-outcome data can assign nearly the same estimated probability $\hat{p}(x) \approx 0.48$ to a new observation yet produce opposite class labels if they operate at different cutoffs. The default cutoff of 0.5 treats false positives and false negatives as equally costly, but in practice the loss is almost never symmetric: missing a disease diagnosis is far more expensive than ordering an unnecessary follow-up test. Shifting the cutoff to, say, 0.3 converts that same $\hat{p}(x) = 0.48$ into a positive prediction, boosting sensitivity at the cost of specificity. Even when two models share a cutoff, small differences in their estimated probabilities near the boundary get amplified into disagreeing decisions, because the 0/1 loss is discontinuous at the threshold. This means that model comparison based solely on classification accuracy at a single cutoff can be misleading, since a model with slightly better probability calibration may still lose on accuracy if its errors cluster near the boundary. Given that the Bayes-optimal cutoff depends on the ratio of misclassification costs $c_{FN}/c_{FP}$, how should we evaluate whether a model's probability estimates are reliable enough to trust the induced decisions, rather than just comparing accuracy at an arbitrarily chosen threshold?
