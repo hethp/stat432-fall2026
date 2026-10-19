@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Homework 08</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --accent: #2c5282;
+    --border: #cbd5e0;
+    --code-bg: #f7fafc;
+    --table-stripe: #f0f4f8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    line-height: 1.6;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+  h1 { font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--accent); }
+  h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; color: var(--accent); border-bottom: 2px solid var(--border); padding-bottom: 0.3rem; }
+  h3 { font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
+  p, li { margin-bottom: 0.6rem; }
+  ul, ol { padding-left: 1.5rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.92rem;
+  }
+  th, td {
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--border);
+    text-align: right;
+  }
+  th { background: var(--accent); color: #fff; font-weight: 600; }
+  tr:nth-child(even) { background: var(--table-stripe); }
+  tr.highlight { background: #fff5f5; }
+  tr.on-margin { background: #fffff0; }
+  code {
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+    background: var(--code-bg);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+  .math { font-style: italic; }
+  .plot-container {
+    margin: 1.2rem 0;
+    text-align: center;
+  }
+  .plot-container svg {
+    max-width: 100%;
+    height: auto;
+  }
+  .summary-box {
+    background: #ebf8ff;
+    border-left: 4px solid var(--accent);
+    padding: 0.8rem 1rem;
+    margin: 1rem 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .note {
+    background: #fffff0;
+    border-left: 4px solid #d69e2e;
+    padding: 0.8rem 1rem;
+    margin: 1rem 0;
+    border-radius: 0 4px 4px 0;
+  }
+  nav#toc {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 2rem;
+  }
+  nav#toc h2 { margin-top: 0; border: none; font-size: 1.1rem; }
+  nav#toc ul { list-style: none; padding-left: 0; }
+  nav#toc li { margin-bottom: 0.3rem; }
+  nav#toc a { color: var(--accent); text-decoration: none; }
+  nav#toc a:hover { text-decoration: underline; }
+  nav#toc ul ul { padding-left: 1.2rem; }
+</style>
+</head>
+<body>
+
+<h1>Homework 08</h1>
+
+<nav id="toc">
+  <h2>On this page</h2>
+  <ul>
+    <li><a href="#q1">Question 1: Boundary and margin</a>
+      <ul>
+        <li><a href="#q1a">Part (a): Distance and functional margin table</a></li>
+        <li><a href="#q1b">Part (b): Plot</a></li>
+        <li><a href="#q1c">Part (c): Counts and misclassified observations</a></li>
+      </ul>
+    </li>
+    <li><a href="#q2">Question 2: Margin in four dimensions</a>
+      <ul>
+        <li><a href="#q2a">Part (a): Projection and geometric margin</a></li>
+        <li><a href="#q2b">Part (b): SVM normalization</a></li>
+      </ul>
+    </li>
+    <li><a href="#q3">Question 3: Peer review of a Homework 7 skill</a></li>
+  </ul>
+</nav>
+
+<!-- ============================================================ -->
+<h2 id="q1">Question 1: Boundary and margin</h2>
+
+<p>
+We use <code>margin-geometry-20.csv</code> with 20 observations having predictors
+<var>x</var><sub>1</sub>, <var>x</var><sub>2</sub> and class labels
+<var>y</var> &isin; {&minus;1, 1}. The linear score is
+</p>
+<p style="text-align:center;">
+  <em>f</em>(<strong>x</strong>) = 0.8 <var>x</var><sub>1</sub> + 0.6 <var>x</var><sub>2</sub>.
+</p>
+<p>
+Since &Vert;(0.8, 0.6)&Vert;<sub>2</sub> = 1, the distance from an observation
+to the decision boundary <em>f</em>(<strong>x</strong>) = 0 is simply
+|<em>f</em>(<strong>x</strong>)|, and the functional margin is
+<var>y</var> <em>f</em>(<strong>x</strong>).
+An observation is <strong>inside</strong> the margin when
+<var>y</var> <em>f</em>(<strong>x</strong>) &lt; 1,
+<strong>on</strong> the margin when
+<var>y</var> <em>f</em>(<strong>x</strong>) = 1,
+and <strong>beyond</strong> the margin when
+<var>y</var> <em>f</em>(<strong>x</strong>) &gt; 1.
+</p>
+
+<h3 id="q1a">Part (a): Distance and functional margin table</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Obs</th>
+      <th><var>x</var><sub>1</sub></th>
+      <th><var>x</var><sub>2</sub></th>
+      <th><var>y</var></th>
+      <th><em>f</em>(<strong>x</strong>)</th>
+      <th>Distance</th>
+      <th><var>y f</var>(<strong>x</strong>)</th>
+      <th>Position</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="on-margin"><td>1</td><td>0.68</td><td>0.76</td><td>1</td><td>1.0000</td><td>1.0000</td><td>1.0000</td><td>On</td></tr>
+    <tr><td>2</td><td>1.80</td><td>&minus;0.15</td><td>1</td><td>1.3500</td><td>1.3500</td><td>1.3500</td><td>Beyond</td></tr>
+    <tr><td>3</td><td>1.38</td><td>0.66</td><td>1</td><td>1.5000</td><td>1.5000</td><td>1.5000</td><td>Beyond</td></tr>
+    <tr><td>4</td><td>0.88</td><td>1.66</td><td>1</td><td>1.7000</td><td>1.7000</td><td>1.7000</td><td>Beyond</td></tr>
+    <tr><td>5</td><td>0.62</td><td>2.34</td><td>1</td><td>1.9000</td><td>1.9000</td><td>1.9000</td><td>Beyond</td></tr>
+    <tr><td>6</td><td>2.78</td><td>&minus;0.04</td><td>1</td><td>2.2000</td><td>2.2000</td><td>2.2000</td><td>Beyond</td></tr>
+    <tr><td>7</td><td>1.86</td><td>1.52</td><td>1</td><td>2.4000</td><td>2.4000</td><td>2.4000</td><td>Beyond</td></tr>
+    <tr class="highlight"><td>8</td><td>0.50</td><td>0.40</td><td>1</td><td>0.6400</td><td>0.6400</td><td>0.6400</td><td>Inside</td></tr>
+    <tr class="highlight"><td>9</td><td>0.10</td><td>0.20</td><td>1</td><td>0.2000</td><td>0.2000</td><td>0.2000</td><td>Inside</td></tr>
+    <tr class="highlight"><td>10</td><td>&minus;0.40</td><td>0.20</td><td>1</td><td>&minus;0.2000</td><td>0.2000</td><td>&minus;0.2000</td><td>Inside</td></tr>
+    <tr class="on-margin"><td>11</td><td>&minus;0.92</td><td>&minus;0.44</td><td>&minus;1</td><td>&minus;1.0000</td><td>1.0000</td><td>1.0000</td><td>On</td></tr>
+    <tr><td>12</td><td>&minus;0.50</td><td>&minus;1.50</td><td>&minus;1</td><td>&minus;1.3000</td><td>1.3000</td><td>1.3000</td><td>Beyond</td></tr>
+    <tr><td>13</td><td>&minus;1.90</td><td>&minus;0.05</td><td>&minus;1</td><td>&minus;1.5500</td><td>1.5500</td><td>1.5500</td><td>Beyond</td></tr>
+    <tr><td>14</td><td>&minus;0.44</td><td>&minus;2.33</td><td>&minus;1</td><td>&minus;1.7500</td><td>1.7500</td><td>1.7500</td><td>Beyond</td></tr>
+    <tr><td>15</td><td>&minus;1.98</td><td>&minus;0.61</td><td>&minus;1</td><td>&minus;1.9500</td><td>1.9500</td><td>1.9500</td><td>Beyond</td></tr>
+    <tr><td>16</td><td>&minus;2.74</td><td>0.07</td><td>&minus;1</td><td>&minus;2.1500</td><td>2.1500</td><td>2.1500</td><td>Beyond</td></tr>
+    <tr><td>17</td><td>&minus;1.90</td><td>&minus;1.55</td><td>&minus;1</td><td>&minus;2.4500</td><td>2.4500</td><td>2.4500</td><td>Beyond</td></tr>
+    <tr class="highlight"><td>18</td><td>&minus;0.50</td><td>&minus;0.40</td><td>&minus;1</td><td>&minus;0.6400</td><td>0.6400</td><td>0.6400</td><td>Inside</td></tr>
+    <tr class="highlight"><td>19</td><td>0.00</td><td>&minus;0.40</td><td>&minus;1</td><td>&minus;0.2400</td><td>0.2400</td><td>0.2400</td><td>Inside</td></tr>
+    <tr class="highlight"><td>20</td><td>0.40</td><td>&minus;0.20</td><td>&minus;1</td><td>0.2000</td><td>0.2000</td><td>&minus;0.2000</td><td>Inside</td></tr>
+  </tbody>
+</table>
+<p style="font-size:0.9em; color:#555;">
+  Rows highlighted in pink are <strong>inside</strong> the margin; rows highlighted in pale yellow are <strong>on</strong> the margin.
+</p>
+
+<h3 id="q1b">Part (b): Plot</h3>
+
+<p>
+The plot below shows the observations colored by class, the decision boundary
+<em>f</em>(<strong>x</strong>) = 0 (solid line), the margin lines
+<em>f</em>(<strong>x</strong>) = &plusmn;1 (dashed lines), and open circles
+around observations that are inside the margin.
+Axes are set to
+<var>x</var><sub>1</sub> &isin; [&minus;3.2, 3.2] and
+<var>x</var><sub>2</sub> &isin; [&minus;3, 3] with an equal aspect ratio.
+</p>
+
+<div class="plot-container">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 470" width="700" height="470" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px;">
+  <defs>
+    <clipPath id="plotArea1">
+      <rect x="60" y="20" width="580" height="400"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect x="60" y="20" width="580" height="400" fill="#fafafa" stroke="#333" stroke-width="1"/>
+
+  <!-- Grid lines -->
+  <g stroke="#e0e0e0" stroke-width="0.5">
+    <!-- Vertical grid: x1 from -3 to 3 -->
+    <line x1="150.625" y1="20" x1="150.625" y2="420"/>
+    <line x1="241.25" y1="20" x1="241.25" y2="420"/>
+    <line x1="331.875" y1="20" x1="331.875" y2="420"/>
+    <line x1="422.5" y1="20" x1="422.5" y2="420"/>
+    <line x1="513.125" y1="20" x1="513.125" y2="420"/>
+    <line x1="603.75" y1="20" x1="603.75" y2="420"/>
+    <!-- Horizontal grid: x2 from -2 to 2 -->
+    <line x1="60" y1="86.67" x2="640" y2="86.67"/>
+    <line x1="60" y1="153.33" x2="640" y2="153.33"/>
+    <line x1="60" y1="220" x2="640" y2="220"/>
+    <line x1="60" y1="286.67" x2="640" y2="286.67"/>
+    <line x1="60" y1="353.33" x2="640" y2="353.33"/>
+  </g>
+
+  <!--
+    Coordinate mapping:
+    x1 range: [-3.2, 3.2] -> pixel x: [60, 640]  => px = 60 + (x1 + 3.2) / 6.4 * 580
+    x2 range: [-3, 3]    -> pixel y: [420, 20]    => py = 420 - (x2 + 3) / 6 * 400
+
+    Boundary: 0.8*x1 + 0.6*x2 = 0  => x2 = -4/3 * x1
+      At x1=-3.2: x2 = 4.267 (clipped)
+      At x2=3: x1 = -2.25 => px=60+(0.95/6.4)*580=146.09, py=20
+      At x2=-3: x1=2.25 => px=60+(5.45/6.4)*580=554.06, py=420
+
+    +1 line: 0.8*x1 + 0.6*x2 = 1  => x2 = (1-0.8*x1)/0.6
+      At x2=3: 0.8*x1 = 1 - 1.8 = -0.8, x1=-1 => px=60+(2.2/6.4)*580=259.375, py=20
+      At x2=-3: 0.8*x1 = 1+1.8 = 2.8, x1=3.5 (clip at x1=3.2, x2=(1-2.56)/0.6=-2.6)
+        px=640, py=420-(0.4/6)*400=393.33
+
+    -1 line: 0.8*x1 + 0.6*x2 = -1  => x2 = (-1-0.8*x1)/0.6
+      At x2=3: 0.8*x1 = -1-1.8 = -2.8, x1=-3.5 (clip at x1=-3.2, x2=(-1+2.56)/0.6=2.6)
+        px=60, py=420-(5.6/6)*400=46.67
+      At x2=-3: 0.8*x1 = -1+1.8 = 0.8, x1=1 => px=60+(4.2/6.4)*580=441.25, py=420
+  -->
+
+  <g clip-path="url(#plotArea1)">
+    <!-- Decision boundary f(x)=0 (solid) -->
+    <line x1="146.09" y1="20" x2="554.06" y2="420" stroke="#333" stroke-width="2"/>
+
+    <!-- Margin line f(x)=+1 (dashed) -->
+    <line x1="259.375" y1="20" x2="640" y2="393.33" stroke="#333" stroke-width="1.5" stroke-dasharray="8,5"/>
+
+    <!-- Margin line f(x)=-1 (dashed) -->
+    <line x1="60" y1="46.67" x2="441.25" y2="420" stroke="#333" stroke-width="1.5" stroke-dasharray="8,5"/>
+
+    <!-- Class 1 points (blue) -->
+    <!-- obs 1: (0.68, 0.76) px=60+(3.88/6.4)*580=411.75, py=420-(3.76/6)*400=169.33 - ON -->
+    <circle cx="411.75" cy="169.33" r="5" fill="#2b6cb0"/>
+    <!-- obs 2: (1.80, -0.15) px=60+(5.0/6.4)*580=513.125, py=420-(2.85/6)*400=230.00 -->
+    <circle cx="513.13" cy="230.00" r="5" fill="#2b6cb0"/>
+    <!-- obs 3: (1.38, 0.66) px=60+(4.58/6.4)*580=475.06, py=420-(3.66/6)*400=176.00 -->
+    <circle cx="475.06" cy="176.00" r="5" fill="#2b6cb0"/>
+    <!-- obs 4: (0.88, 1.66) px=60+(4.08/6.4)*580=429.88, py=420-(4.66/6)*400=109.33 -->
+    <circle cx="429.88" cy="109.33" r="5" fill="#2b6cb0"/>
+    <!-- obs 5: (0.62, 2.34) px=60+(3.82/6.4)*580=406.31, py=420-(5.34/6)*400=64.00 -->
+    <circle cx="406.31" cy="64.00" r="5" fill="#2b6cb0"/>
+    <!-- obs 6: (2.78, -0.04) px=60+(5.98/6.4)*580=602.19, py=420-(2.96/6)*400=222.67 -->
+    <circle cx="602.19" cy="222.67" r="5" fill="#2b6cb0"/>
+    <!-- obs 7: (1.86, 1.52) px=60+(5.06/6.4)*580=518.56, py=420-(4.52/6)*400=118.67 -->
+    <circle cx="518.56" cy="118.67" r="5" fill="#2b6cb0"/>
+    <!-- obs 8: (0.50, 0.40) px=60+(3.70/6.4)*580=395.47, py=420-(3.40/6)*400=193.33 - INSIDE -->
+    <circle cx="395.47" cy="193.33" r="5" fill="#2b6cb0"/>
+    <circle cx="395.47" cy="193.33" r="10" fill="none" stroke="#333" stroke-width="1.5"/>
+    <!-- obs 9: (0.10, 0.20) px=60+(3.30/6.4)*580=359.22, py=420-(3.20/6)*400=206.67 - INSIDE -->
+    <circle cx="359.22" cy="206.67" r="5" fill="#2b6cb0"/>
+    <circle cx="359.22" cy="206.67" r="10" fill="none" stroke="#333" stroke-width="1.5"/>
+    <!-- obs 10: (-0.40, 0.20) px=60+(2.80/6.4)*580=313.75, py=420-(3.20/6)*400=206.67 - INSIDE (misclassified) -->
+    <circle cx="313.75" cy="206.67" r="5" fill="#2b6cb0"/>
+    <circle cx="313.75" cy="206.67" r="10" fill="none" stroke="#333" stroke-width="1.5"/>
+
+    <!-- Class -1 points (red) -->
+    <!-- obs 11: (-0.92, -0.44) px=60+(2.28/6.4)*580=266.56, py=420-(2.56/6)*400=249.33 - ON -->
+    <circle cx="266.56" cy="249.33" r="5" fill="#c53030"/>
+    <!-- obs 12: (-0.50, -1.50) px=60+(2.70/6.4)*580=304.69, py=420-(1.50/6)*400=320.00 -->
+    <circle cx="304.69" cy="320.00" r="5" fill="#c53030"/>
+    <!-- obs 13: (-1.90, -0.05) px=60+(1.30/6.4)*580=177.81, py=420-(2.95/6)*400=223.33 -->
+    <circle cx="177.81" cy="223.33" r="5" fill="#c53030"/>
+    <!-- obs 14: (-0.44, -2.33) px=60+(2.76/6.4)*580=310.13, py=420-(0.67/6)*400=375.33 -->
+    <circle cx="310.13" cy="375.33" r="5" fill="#c53030"/>
+    <!-- obs 15: (-1.98, -0.61) px=60+(1.22/6.4)*580=170.56, py=420-(2.39/6)*400=260.67 -->
+    <circle cx="170.56" cy="260.67" r="5" fill="#c53030"/>
+    <!-- obs 16: (-2.74, 0.07) px=60+(0.46/6.4)*580=101.69, py=420-(3.07/6)*400=215.33 -->
+    <circle cx="101.69" cy="215.33" r="5" fill="#c53030"/>
+    <!-- obs 17: (-1.90, -1.55) px=60+(1.30/6.4)*580=177.81, py=420-(1.45/6)*400=323.33 -->
+    <circle cx="177.81" cy="323.33" r="5" fill="#c53030"/>
+    <!-- obs 18: (-0.50, -0.40) px=60+(2.70/6.4)*580=304.69, py=420-(2.60/6)*400=246.67 - INSIDE -->
+    <circle cx="304.69" cy="246.67" r="5" fill="#c53030"/>
+    <circle cx="304.69" cy="246.67" r="10" fill="none" stroke="#333" stroke-width="1.5"/>
+    <!-- obs 19: (0.00, -0.40) px=60+(3.20/6.4)*580=350.00, py=420-(2.60/6)*400=246.67 - INSIDE -->
+    <circle cx="350.00" cy="246.67" r="5" fill="#c53030"/>
+    <circle cx="350.00" cy="246.67" r="10" fill="none" stroke="#333" stroke-width="1.5"/>
+    <!-- obs 20: (0.40, -0.20) px=60+(3.60/6.4)*580=386.25, py=420-(2.80/6)*400=233.33 - INSIDE (misclassified) -->
+    <circle cx="386.25" cy="233.33" r="5" fill="#c53030"/>
+    <circle cx="386.25" cy="233.33" r="10" fill="none" stroke="#333" stroke-width="1.5"/>
+  </g>
+
+  <!-- X axis ticks and labels -->
+  <g text-anchor="middle" fill="#333" font-size="11">
+    <text x="60" y="438">&minus;3</text>
+    <line x1="60" y1="420" x2="60" y2="425" stroke="#333"/>
+    <text x="150.625" y="438">&minus;2</text>
+    <line x1="150.625" y1="420" x2="150.625" y2="425" stroke="#333"/>
+    <text x="241.25" y="438">&minus;1</text>
+    <line x1="241.25" y1="420" x2="241.25" y2="425" stroke="#333"/>
+    <text x="331.875" y="438">0</text>
+    <line x1="331.875" y1="420" x2="331.875" y2="425" stroke="#333"/>
+    <text x="422.5" y="438">1</text>
+    <line x1="422.5" y1="420" x2="422.5" y2="425" stroke="#333"/>
+    <text x="513.125" y="438">2</text>
+    <line x1="513.125" y1="420" x2="513.125" y2="425" stroke="#333"/>
+    <text x="603.75" y="438">3</text>
+    <line x1="603.75" y1="420" x2="603.75" y2="425" stroke="#333"/>
+  </g>
+  <text x="350" y="462" text-anchor="middle" font-size="13" fill="#333" font-style="italic">x<tspan baseline-shift="sub" font-size="10">1</tspan></text>
+
+  <!-- Y axis ticks and labels -->
+  <g text-anchor="end" fill="#333" font-size="11">
+    <text x="55" y="423">&minus;3</text>
+    <line x1="55" y1="420" x2="60" y2="420" stroke="#333"/>
+    <text x="55" y="356.33">&minus;2</text>
+    <line x1="55" y1="353.33" x2="60" y2="353.33" stroke="#333"/>
+    <text x="55" y="289.67">&minus;1</text>
+    <line x1="55" y1="286.67" x2="60" y2="286.67" stroke="#333"/>
+    <text x="55" y="223">0</text>
+    <line x1="55" y1="220" x2="60" y2="220" stroke="#333"/>
+    <text x="55" y="156.33">1</text>
+    <line x1="55" y1="153.33" x2="60" y2="153.33" stroke="#333"/>
+    <text x="55" y="89.67">2</text>
+    <line x1="55" y1="86.67" x2="60" y2="86.67" stroke="#333"/>
+    <text x="55" y="24">3</text>
+    <line x1="55" y1="20" x2="60" y2="20" stroke="#333"/>
+  </g>
+  <text x="15" y="220" text-anchor="middle" font-size="13" fill="#333" font-style="italic" transform="rotate(-90,15,220)">x<tspan baseline-shift="sub" font-size="10">2</tspan></text>
+
+  <!-- Legend -->
+  <g transform="translate(490, 30)">
+    <rect x="0" y="0" width="140" height="100" fill="white" fill-opacity="0.9" stroke="#ccc" rx="4"/>
+    <circle cx="18" cy="18" r="5" fill="#2b6cb0"/>
+    <text x="30" y="22" font-size="11">Class 1</text>
+    <circle cx="18" cy="38" r="5" fill="#c53030"/>
+    <text x="30" y="42" font-size="11">Class &minus;1</text>
+    <circle cx="18" cy="58" r="8" fill="none" stroke="#333" stroke-width="1.5"/>
+    <text x="30" y="62" font-size="11">Inside margin</text>
+    <line x1="8" y1="78" x2="28" y2="78" stroke="#333" stroke-width="2"/>
+    <text x="30" y="82" font-size="11">Boundary</text>
+    <line x1="8" y1="93" x2="28" y2="93" stroke="#333" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <text x="30" y="97" font-size="11">Margin lines</text>
+  </g>
+</svg>
+</div>
+
+<h3 id="q1c">Part (c): Counts and misclassified observations</h3>
+
+<div class="summary-box">
+  <strong>Summary:</strong>
+  <ul style="margin-top:0.4rem;">
+    <li><strong>Inside the margin:</strong> 6 observations (8, 9, 10, 18, 19, 20)</li>
+    <li><strong>On the margin:</strong> 2 observations (1, 11)</li>
+    <li><strong>Beyond the margin:</strong> 12 observations (2, 3, 4, 5, 6, 7, 12, 13, 14, 15, 16, 17)</li>
+  </ul>
+</div>
+
+<p>
+<strong>Misclassified observations:</strong> Observations <strong>10</strong> and <strong>20</strong>.
+</p>
+<ul>
+  <li>Observation 10 has <var>y</var> = 1 but <em>f</em>(<strong>x</strong>) = &minus;0.20 &lt; 0,
+      so it is predicted as class &minus;1. It is misclassified and lies on the wrong side of the boundary.</li>
+  <li>Observation 20 has <var>y</var> = &minus;1 but <em>f</em>(<strong>x</strong>) = 0.20 &gt; 0,
+      so it is predicted as class 1. It is misclassified and lies on the wrong side of the boundary.</li>
+</ul>
+<p>
+Both misclassified observations have negative functional margins
+(<var>y f</var>(<strong>x</strong>) = &minus;0.20), confirming they fall on the
+wrong side of the decision boundary.
+</p>
+
+<!-- ============================================================ -->
+<h2 id="q2">Question 2: Margin in four dimensions</h2>
+
+<p>
+We use <code>margin-geometry-4d.csv</code> with 50 observations having four predictors and class labels
+<var>y</var> &isin; {&minus;1, 1}. The linear score is
+</p>
+<p style="text-align:center;">
+  <em>f</em>(<strong>x</strong>) = &beta;<sub>0</sub> + <strong>x</strong><sup>T</sup><strong>&beta;</strong>,
+  &emsp; &beta;<sub>0</sub> = &minus;1,
+  &emsp; <strong>&beta;</strong> = (1, 2, &minus;2, 4)<sup>T</sup>.
+</p>
+
+<h3 id="q2a">Part (a): Projection and geometric margin</h3>
+
+<p>
+The norm of <strong>&beta;</strong> is
+&Vert;<strong>&beta;</strong>&Vert; = &radic;(1<sup>2</sup> + 2<sup>2</sup> + 2<sup>2</sup> + 4<sup>2</sup>)
+= &radic;25 = 5.
+</p>
+<p>
+The unit direction is
+<strong>&beta;</strong>&circ; = <strong>&beta;</strong> / &Vert;<strong>&beta;</strong>&Vert;
+= (0.2, 0.4, &minus;0.4, 0.8).
+</p>
+<p>
+Each observation is projected onto this direction:
+proj<sub><var>i</var></sub> = <strong>x</strong><sub><var>i</var></sub><sup>T</sup> <strong>&beta;</strong>&circ;.
+The decision boundary <em>f</em>(<strong>x</strong>) = 0 corresponds to
+proj = &minus;&beta;<sub>0</sub> / &Vert;<strong>&beta;</strong>&Vert;
+= 1/5 = 0.2
+in projection space.
+</p>
+
+<div class="plot-container">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 280" width="700" height="280" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px;">
+  <defs>
+    <clipPath id="plotArea2">
+      <rect x="80" y="20" width="580" height="210"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect x="80" y="20" width="580" height="210" fill="#fafafa" stroke="#333" stroke-width="1"/>
+
+  <!--
+    Projection range: approx [-2.5, 3.0]
+    Map proj in [-2.5, 3.0] -> px in [80, 660]
+    px = 80 + (proj + 2.5) / 5.5 * 580
+
+    Class 1 at y=80 (top band), Class -1 at y=170 (bottom band)
+    Boundary at proj=0.2 => px = 80 + 2.7/5.5 * 580 = 80 + 284.73 = 364.73
+  -->
+
+  <!-- Grid lines -->
+  <g stroke="#e0e0e0" stroke-width="0.5">
+    <!-- At proj = -2: px = 80 + 0.5/5.5*580 = 132.73 -->
+    <line x1="132.73" y1="20" x2="132.73" y2="230"/>
+    <!-- At proj = -1: px = 80 + 1.5/5.5*580 = 238.18 -->
+    <line x1="238.18" y1="20" x2="238.18" y2="230"/>
+    <!-- At proj = 0: px = 80 + 2.5/5.5*580 = 343.64 -->
+    <line x1="343.64" y1="20" x2="343.64" y2="230"/>
+    <!-- At proj = 1: px = 80 + 3.5/5.5*580 = 449.09 -->
+    <line x1="449.09" y1="20" x2="449.09" y2="230"/>
+    <!-- At proj = 2: px = 80 + 4.5/5.5*580 = 554.55 -->
+    <line x1="554.55" y1="20" x2="554.55" y2="230"/>
+    <!-- At proj = 3: px = 80 + 5.5/5.5*580 = 660 -->
+    <line x1="660" y1="20" x2="660" y2="230"/>
+  </g>
+
+  <!-- Horizontal divider -->
+  <line x1="80" y1="125" x2="660" y2="125" stroke="#e0e0e0" stroke-width="0.5"/>
+
+  <g clip-path="url(#plotArea2)">
+    <!-- Decision boundary at proj=0.2 (solid) -->
+    <line x1="364.73" y1="20" x2="364.73" y2="230" stroke="#333" stroke-width="2.5"/>
+
+    <!-- Margin lines at proj = 0.2 ± 1.0 => proj=-0.8 and proj=1.2 -->
+    <!-- proj=-0.8: px = 80 + 1.7/5.5*580 = 259.27 -->
+    <line x1="259.27" y1="20" x2="259.27" y2="230" stroke="#333" stroke-width="1.5" stroke-dasharray="6,4"/>
+    <!-- proj=1.2: px = 80 + 3.7/5.5*580 = 470.18 -->
+    <line x1="470.18" y1="20" x2="470.18" y2="230" stroke="#333" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+    <!-- Class 1 observations (blue, y_pixel ~ 70-80 with jitter) -->
+    <!-- obs 2: proj=2.20 px=80+4.7/5.5*580=575.64 -->
+    <circle cx="575.64" cy="72" r="4" fill="#2b6cb0"/>
+    <!-- obs 4: proj=1.20 px=470.18 - closest to boundary for class 1 -->
+    <circle cx="470.18" cy="68" r="4" fill="#2b6cb0"/>
+    <circle cx="470.18" cy="68" r="8" fill="none" stroke="#333" stroke-width="1.2"/>
+    <!-- obs 10: proj=1.70 px=80+4.2/5.5*580=522.91 -->
+    <circle cx="522.91" cy="76" r="4" fill="#2b6cb0"/>
+    <!-- obs 12: proj=1.60 px=80+4.1/5.5*580=512.36 -->
+    <circle cx="512.36" cy="66" r="4" fill="#2b6cb0"/>
+    <!-- obs 13: proj=2.50 px=80+5.0/5.5*580=607.27 -->
+    <circle cx="607.27" cy="70" r="4" fill="#2b6cb0"/>
+    <!-- obs 14: proj=1.60 px=512.36 -->
+    <circle cx="512.36" cy="78" r="4" fill="#2b6cb0"/>
+    <!-- obs 16: proj=1.90 px=80+4.4/5.5*580=544.00 -->
+    <circle cx="544.00" cy="74" r="4" fill="#2b6cb0"/>
+    <!-- obs 18: proj=2.40 px=80+4.9/5.5*580=596.73 -->
+    <circle cx="596.73" cy="68" r="4" fill="#2b6cb0"/>
+    <!-- obs 19: proj=2.40 px=596.73 -->
+    <circle cx="596.73" cy="80" r="4" fill="#2b6cb0"/>
+    <!-- obs 24: proj=2.20 px=575.64 -->
+    <circle cx="575.64" cy="62" r="4" fill="#2b6cb0"/>
+    <!-- obs 28: proj=1.80 px=80+4.3/5.5*580=533.45 -->
+    <circle cx="533.45" cy="70" r="4" fill="#2b6cb0"/>
+    <!-- obs 30: proj=1.90 px=544.00 -->
+    <circle cx="544.00" cy="64" r="4" fill="#2b6cb0"/>
+    <!-- obs 31: proj=1.40 px=80+3.9/5.5*580=491.27 -->
+    <circle cx="491.27" cy="76" r="4" fill="#2b6cb0"/>
+    <!-- obs 32: proj=2.30 px=80+4.8/5.5*580=586.18 -->
+    <circle cx="586.18" cy="72" r="4" fill="#2b6cb0"/>
+    <!-- obs 33: proj=1.20 px=470.18 -->
+    <circle cx="470.18" cy="80" r="4" fill="#2b6cb0"/>
+    <circle cx="470.18" cy="80" r="8" fill="none" stroke="#333" stroke-width="1.2"/>
+    <!-- obs 35: proj=1.80 px=533.45 -->
+    <circle cx="533.45" cy="78" r="4" fill="#2b6cb0"/>
+    <!-- obs 37: proj=2.60 px=80+5.1/5.5*580=617.82 -->
+    <circle cx="617.82" cy="66" r="4" fill="#2b6cb0"/>
+    <!-- obs 38: proj=2.30 px=586.18 -->
+    <circle cx="586.18" cy="62" r="4" fill="#2b6cb0"/>
+    <!-- obs 39: proj=1.50 px=80+4.0/5.5*580=501.82 -->
+    <circle cx="501.82" cy="74" r="4" fill="#2b6cb0"/>
+    <!-- obs 41: proj=1.50 px=501.82 -->
+    <circle cx="501.82" cy="66" r="4" fill="#2b6cb0"/>
+    <!-- obs 42: proj=2.10 px=80+4.6/5.5*580=565.09 -->
+    <circle cx="565.09" cy="70" r="4" fill="#2b6cb0"/>
+    <!-- obs 43: proj=2.00 px=80+4.5/5.5*580=554.55 -->
+    <circle cx="554.55" cy="78" r="4" fill="#2b6cb0"/>
+    <!-- obs 47: proj=2.00 px=554.55 -->
+    <circle cx="554.55" cy="64" r="4" fill="#2b6cb0"/>
+    <!-- obs 48: proj=2.10 px=565.09 -->
+    <circle cx="565.09" cy="80" r="4" fill="#2b6cb0"/>
+    <!-- obs 50: proj=1.70 px=522.91 -->
+    <circle cx="522.91" cy="68" r="4" fill="#2b6cb0"/>
+
+    <!-- Class -1 observations (red, y_pixel ~ 160-180 with jitter) -->
+    <!-- obs 1: proj=-1.40 px=80+1.1/5.5*580=196.00 -->
+    <circle cx="196.00" cy="168" r="4" fill="#c53030"/>
+    <!-- obs 3: proj=-1.90 px=80+0.6/5.5*580=143.27 -->
+    <circle cx="143.27" cy="172" r="4" fill="#c53030"/>
+    <!-- obs 5: proj=-1.40 px=196.00 -->
+    <circle cx="196.00" cy="162" r="4" fill="#c53030"/>
+    <!-- obs 6: proj=-1.10 px=80+1.4/5.5*580=227.64 -->
+    <circle cx="227.64" cy="174" r="4" fill="#c53030"/>
+    <!-- obs 7: proj=-1.30 px=80+1.2/5.5*580=206.55 -->
+    <circle cx="206.55" cy="166" r="4" fill="#c53030"/>
+    <!-- obs 8: proj=-1.20 px=80+1.3/5.5*580=217.09 -->
+    <circle cx="217.09" cy="178" r="4" fill="#c53030"/>
+    <!-- obs 9: proj=-1.70 px=80+0.8/5.5*580=164.36 -->
+    <circle cx="164.36" cy="170" r="4" fill="#c53030"/>
+    <!-- obs 11: proj=-1.60 px=80+0.9/5.5*580=174.91 -->
+    <circle cx="174.91" cy="164" r="4" fill="#c53030"/>
+    <!-- obs 15: proj=-0.80 px=259.27 - closest to boundary for class -1 -->
+    <circle cx="259.27" cy="170" r="4" fill="#c53030"/>
+    <circle cx="259.27" cy="170" r="8" fill="none" stroke="#333" stroke-width="1.2"/>
+    <!-- obs 17: proj=-1.00 px=80+1.5/5.5*580=238.18 -->
+    <circle cx="238.18" cy="176" r="4" fill="#c53030"/>
+    <!-- obs 20: proj=-1.50 px=80+1.0/5.5*580=185.45 -->
+    <circle cx="185.45" cy="168" r="4" fill="#c53030"/>
+    <!-- obs 21: proj=-1.20 px=217.09 -->
+    <circle cx="217.09" cy="164" r="4" fill="#c53030"/>
+    <!-- obs 22: proj=-1.60 px=174.91 -->
+    <circle cx="174.91" cy="176" r="4" fill="#c53030"/>
+    <!-- obs 23: proj=-2.00 px=80+0.5/5.5*580=132.73 -->
+    <circle cx="132.73" cy="170" r="4" fill="#c53030"/>
+    <!-- obs 25: proj=-1.80 px=80+0.7/5.5*580=153.82 -->
+    <circle cx="153.82" cy="174" r="4" fill="#c53030"/>
+    <!-- obs 26: proj=-2.20 px=80+0.3/5.5*580=111.64 -->
+    <circle cx="111.64" cy="166" r="4" fill="#c53030"/>
+    <!-- obs 27: proj=-1.30 px=206.55 -->
+    <circle cx="206.55" cy="178" r="4" fill="#c53030"/>
+    <!-- obs 29: proj=-1.70 px=164.36 -->
+    <circle cx="164.36" cy="162" r="4" fill="#c53030"/>
+    <!-- obs 34: proj=-1.50 px=185.45 -->
+    <circle cx="185.45" cy="176" r="4" fill="#c53030"/>
+    <!-- obs 36: proj=-0.80 px=259.27 -->
+    <circle cx="259.27" cy="162" r="4" fill="#c53030"/>
+    <circle cx="259.27" cy="162" r="8" fill="none" stroke="#333" stroke-width="1.2"/>
+    <!-- obs 40: proj=-1.80 px=153.82 -->
+    <circle cx="153.82" cy="166" r="4" fill="#c53030"/>
+    <!-- obs 44: proj=-1.10 px=227.64 -->
+    <circle cx="227.64" cy="164" r="4" fill="#c53030"/>
+    <!-- obs 45: proj=-2.00 px=132.73 -->
+    <circle cx="132.73" cy="178" r="4" fill="#c53030"/>
+    <!-- obs 46: proj=-1.90 px=143.27 -->
+    <circle cx="143.27" cy="162" r="4" fill="#c53030"/>
+    <!-- obs 49: proj=-2.10 px=80+0.4/5.5*580=122.18 -->
+    <circle cx="122.18" cy="170" r="4" fill="#c53030"/>
+  </g>
+
+  <!-- X axis ticks and labels -->
+  <g text-anchor="middle" fill="#333" font-size="11">
+    <text x="132.73" y="250">&minus;2</text>
+    <line x1="132.73" y1="230" x2="132.73" y2="235" stroke="#333"/>
+    <text x="238.18" y="250">&minus;1</text>
+    <line x1="238.18" y1="230" x2="238.18" y2="235" stroke="#333"/>
+    <text x="343.64" y="250">0</text>
+    <line x1="343.64" y1="230" x2="343.64" y2="235" stroke="#333"/>
+    <text x="449.09" y="250">1</text>
+    <line x1="449.09" y1="230" x2="449.09" y2="235" stroke="#333"/>
+    <text x="554.55" y="250">2</text>
+    <line x1="554.55" y1="230" x2="554.55" y2="235" stroke="#333"/>
+    <text x="660" y="250">3</text>
+    <line x1="660" y1="230" x2="660" y2="235" stroke="#333"/>
+  </g>
+  <text x="370" y="272" text-anchor="middle" font-size="12" fill="#333">Projection onto &beta; direction</text>
+
+  <!-- Y axis labels -->
+  <text x="72" y="78" text-anchor="end" font-size="11" fill="#333">Class 1</text>
+  <text x="72" y="172" text-anchor="end" font-size="11" fill="#333">Class &minus;1</text>
+
+  <!-- Annotations for margin -->
+  <!-- Arrow showing M on the +1 side -->
+  <line x1="364.73" y1="40" x2="470.18" y2="40" stroke="#666" stroke-width="1" marker-start="url(#arrowL)" marker-end="url(#arrowR)"/>
+  <text x="417" y="36" text-anchor="middle" font-size="10" fill="#666" font-style="italic">M = 1</text>
+  <!-- Arrow showing M on the -1 side -->
+  <line x1="259.27" y1="195" x2="364.73" y2="195" stroke="#666" stroke-width="1"/>
+  <text x="312" y="210" text-anchor="middle" font-size="10" fill="#666" font-style="italic">M = 1</text>
+
+  <!-- Legend -->
+  <g transform="translate(86, 26)">
+    <rect x="0" y="0" width="125" height="72" fill="white" fill-opacity="0.92" stroke="#ccc" rx="3"/>
+    <circle cx="14" cy="15" r="4" fill="#2b6cb0"/>
+    <text x="24" y="18" font-size="10">Class 1</text>
+    <circle cx="14" cy="33" r="4" fill="#c53030"/>
+    <text x="24" y="36" font-size="10">Class &minus;1</text>
+    <circle cx="14" cy="51" r="6" fill="none" stroke="#333" stroke-width="1.2"/>
+    <text x="24" y="54" font-size="10">Closest to boundary</text>
+    <line x1="5" y1="66" x2="23" y2="66" stroke="#333" stroke-width="2"/>
+    <text x="24" y="69" font-size="10">Boundary</text>
+  </g>
+</svg>
+</div>
+
+<p>
+The observations are projected onto the unit direction
+<strong>&beta;</strong>&circ; = (0.2, 0.4, &minus;0.4, 0.8). The decision boundary
+sits at projection value 0.2 (= &minus;&beta;<sub>0</sub>/&Vert;<strong>&beta;</strong>&Vert; = 1/5).
+</p>
+<p>
+From the projection plot, the closest class 1 observations to the boundary are
+observations <strong>4</strong> and <strong>33</strong> with projections of 1.2,
+and the closest class &minus;1 observations are observations <strong>15</strong> and
+<strong>36</strong> with projections of &minus;0.8.
+</p>
+<p>
+The distance from the boundary (at proj = 0.2) to the closest observations:
+</p>
+<ul>
+  <li>Class 1 closest: |1.2 &minus; 0.2| = 1.0</li>
+  <li>Class &minus;1 closest: |&minus;0.8 &minus; 0.2| = 1.0</li>
+</ul>
+
+<div class="summary-box">
+  <strong>Geometric margin:</strong> <em>M</em> = 1.0.
+  <br>
+  This can also be computed as
+  <em>M</em> = min<sub><var>i</var></sub> <var>y</var><sub><var>i</var></sub> <em>f</em>(<strong>x</strong><sub><var>i</var></sub>) / &Vert;<strong>&beta;</strong>&Vert;
+  = 5 / 5 = 1.
+</div>
+
+<h3 id="q2b">Part (b): SVM normalization</h3>
+
+<p>
+The SVM normalization rescales (<strong>&beta;</strong>, &beta;<sub>0</sub>) so that
+min<sub><var>i</var></sub> <var>y</var><sub><var>i</var></sub> <em>f</em>(<strong>x</strong><sub><var>i</var></sub>) = 1.
+</p>
+<p>
+Currently, the minimum functional margin is
+min<sub><var>i</var></sub> <var>y</var><sub><var>i</var></sub> <em>f</em>(<strong>x</strong><sub><var>i</var></sub>) = 5
+(achieved by observations 4, 15, 33, and 36).
+We divide all parameters by 5:
+</p>
+
+<div class="summary-box">
+  <p>
+    <strong>SVM-normalized parameters:</strong>
+  </p>
+  <p style="text-align:center;">
+    &beta;<sub>0</sub><sup>*</sup> = &minus;1/5 = &minus;0.2
+    <br>
+    <strong>&beta;</strong><sup>*</sup> = (1/5, 2/5, &minus;2/5, 4/5) = (0.2, 0.4, &minus;0.4, 0.8)
+  </p>
+</div>
+
+<p>
+<strong>Verification:</strong> Under this normalization,
+&Vert;<strong>&beta;</strong><sup>*</sup>&Vert; = &radic;(0.04 + 0.16 + 0.16 + 0.64) = &radic;1 = 1,
+and the geometric margin is
+<em>M</em> = 1 / &Vert;<strong>&beta;</strong><sup>*</sup>&Vert; = 1 / 1 = 1,
+consistent with part (a).
+</p>
+
+<!-- ============================================================ -->
+<h2 id="q3">Question 3: Peer review of a Homework 7 skill</h2>
+
+<div class="note">
+  <p>
+    <strong>Note:</strong> This question requires reviewing a peer&rsquo;s Homework 7
+    skill and writing a review based on actually running the skill, then posting
+    the review as a GitHub Issue. The review must be written without AI assistance.
+    This section will be completed manually once the instructor&rsquo;s GitHub Issue
+    assigns a student repository to review.
+  </p>
+</div>
+
+</body>
+</html>
